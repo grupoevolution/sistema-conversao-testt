@@ -1380,24 +1380,76 @@ app.get('/api/contacts', (req, res) => {
 // ✅ NOVO ENDPOINT: Download Excel de contatos
 app.get('/api/contacts/download', (req, res) => {
     try {
-        // Criar CSV simples (compatível com Excel)
-        let csvContent = 'Instancia,Data,Numero,Nome\n';
+        const { format = 'google' } = req.query;
         
-        capturedContacts.forEach((contacts, instanceName) => {
-            contacts.forEach(contact => {
-                csvContent += `${instanceName},${contact.date},${contact.phone},${contact.name}\n`;
+        if (format === 'google') {
+            // ✅ FORMATO ESPECÍFICO PARA GOOGLE CONTACTS
+            let csvContent = 'Name,Phone 1 - Value\n';
+            
+            // Coletar todos os contatos de todas as instâncias
+            const allContacts = [];
+            
+            capturedContacts.forEach((contacts, instanceName) => {
+                contacts.forEach(contact => {
+                    allContacts.push({
+                        date: contact.date,
+                        phone: contact.phone,
+                        capturedAt: contact.capturedAt
+                    });
+                });
             });
-        });
-        
-        const filename = `contatos-${new Date().toISOString().split('T')[0]}.csv`;
-        
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.send('\ufeff' + csvContent); // BOM para UTF-8
-        
-        addLog('CONTACTS_DOWNLOAD', `Download de contatos realizado: ${filename}`);
+            
+            // Ordenar por data de captura (mais recentes primeiro)
+            allContacts.sort((a, b) => new Date(b.capturedAt) - new Date(a.capturedAt));
+            
+            // Remover duplicatas por telefone (manter o mais recente)
+            const uniqueContacts = [];
+            const seenPhones = new Set();
+            
+            allContacts.forEach(contact => {
+                if (!seenPhones.has(contact.phone)) {
+                    seenPhones.add(contact.phone);
+                    uniqueContacts.push(contact);
+                }
+            });
+            
+            // Gerar CSV no formato Google Contacts
+            uniqueContacts.forEach(contact => {
+                csvContent += `${contact.date},${contact.phone}\n`;
+            });
+            
+            const filename = `contatos-google-${new Date().toISOString().split('T')[0]}.csv`;
+            
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.send('\ufeff' + csvContent); // BOM para UTF-8
+            
+            addLog('CONTACTS_DOWNLOAD_GOOGLE', `Download Google Contacts: ${uniqueContacts.length} contatos únicos`);
+            
+        } else if (format === 'detailed') {
+            // ✅ FORMATO DETALHADO PARA ANÁLISE
+            let csvContent = 'Data,Numero,Nome,Instancia,Capturado_Em\n';
+            
+            capturedContacts.forEach((contacts, instanceName) => {
+                contacts.forEach(contact => {
+                    csvContent += `${contact.date},${contact.phone},${contact.name},${instanceName},${contact.capturedAt}\n`;
+                });
+            });
+            
+            const filename = `contatos-detalhado-${new Date().toISOString().split('T')[0]}.csv`;
+            
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.send('\ufeff' + csvContent);
+            
+            addLog('CONTACTS_DOWNLOAD_DETAILED', 'Download detalhado realizado');
+            
+        } else {
+            res.status(400).json({ success: false, error: 'Formato inválido' });
+        }
         
     } catch (error) {
+        addLog('CONTACTS_DOWNLOAD_ERROR', 'Erro no download: ' + error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
