@@ -1384,7 +1384,7 @@ app.get('/api/contacts/download', (req, res) => {
         
         if (format === 'google') {
             // ✅ FORMATO ESPECÍFICO PARA GOOGLE CONTACTS
-            let csvContent = 'Name,Phone 1 - Value\n';
+            let csvContent = 'First Name,Mobile Phone\n';
             
             // Coletar todos os contatos de todas as instâncias
             const allContacts = [];
@@ -1415,7 +1415,7 @@ app.get('/api/contacts/download', (req, res) => {
             
             // Gerar CSV no formato Google Contacts
             uniqueContacts.forEach(contact => {
-                csvContent += `${contact.date},${contact.phone}\n`;
+                csvContent += `${contact.date},+${contact.phone}\n`;
             });
             
             const filename = `contatos-google-${new Date().toISOString().split('T')[0]}.csv`;
