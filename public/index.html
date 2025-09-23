@@ -826,8 +826,11 @@
                     <div class="contacts-header">
                         <h2>Contatos Capturados para Google Contacts</h2>
                         <div class="contacts-actions">
-                            <button class="btn btn-success" onclick="downloadContacts()">
-                                📥 Download CSV
+                            <button class="btn btn-success" onclick="downloadContacts('google')" title="📱 Formato otimizado para Google Contacts">
+                                📱 Google Contacts
+                            </button>
+                            <button class="btn btn-secondary" onclick="downloadContacts('detailed')" title="📊 Formato detalhado para análise">
+                                📊 CSV Completo
                             </button>
                             <button class="btn btn-danger" onclick="clearContacts()">
                                 🗑️ Limpar Tudo
@@ -1358,27 +1361,39 @@
             grid.innerHTML = html;
         }
 
-        async function downloadContacts() {
+        async function downloadContacts(format = 'google') {
             try {
-                const response = await fetch('/api/contacts/download');
+                const response = await fetch(`/api/contacts/download?format=${format}`);
                 
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `contatos-${new Date().toISOString().split('T')[0]}.csv`;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    if (format === 'google') {
+                        a.download = `contatos-google-${today}.csv`;
+                    } else {
+                        a.download = `contatos-detalhado-${today}.csv`;
+                    }
+                    
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
                     
-                    alert('Download iniciado! Arquivo CSV salvo com contatos organizados por instância.');
+                    if (format === 'google') {
+                        alert('✅ Google Contacts CSV baixado!\n\n📱 COMO IMPORTAR:\n1. Abra contacts.google.com\n2. Clique "Importar"\n3. Selecione o arquivo baixado\n4. Confirme importação\n\n📞 Nome = Data de contato\n📱 Telefone = Número WhatsApp');
+                    } else {
+                        alert('✅ CSV detalhado baixado com sucesso!\n\nContém: Data, Número, Nome, Instância e data de captura');
+                    }
                 } else {
-                    alert('Erro ao gerar arquivo de download');
+                    alert('❌ Erro ao gerar arquivo de download');
                 }
             } catch (error) {
-                alert('Erro ao baixar contatos: ' + error.message);
+                alert('❌ Erro ao baixar contatos: ' + error.message);
             }
         }
 
