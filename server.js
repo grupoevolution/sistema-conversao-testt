@@ -1254,6 +1254,79 @@ app.delete('/api/funnels/:id', (req, res) => {
     }
 });
 
+// ✅ NOVO ENDPOINT: Export de funis
+app.get('/api/funnels/export', (req, res) => {
+    try {
+        const funnelsArray = Array.from(funis.values());
+        const exportData = {
+            version: '2.0',
+            exportDate: new Date().toISOString(),
+            totalFunnels: funnelsArray.length,
+            funnels: funnelsArray
+        };
+        
+        const filename = `kirvano-funis-backup-${new Date().toISOString().split('T')[0]}.json`;
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(JSON.stringify(exportData, null, 2));
+        
+        addLog('FUNNELS_EXPORT', `Export realizado: ${funnelsArray.length} funis`, { filename });
+        
+    } catch (error) {
+        addLog('FUNNELS_EXPORT_ERROR', 'Erro no export: ' + error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ✅ NOVO ENDPOINT: Import de funis
+app.post('/api/funnels/import', (req, res) => {
+    try {
+        const importData = req.body;
+        
+        // Validar estrutura do backup
+        if (!importData.funnels || !Array.isArray(importData.funnels)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Arquivo de backup inválido' 
+            });
+        }
+        
+        const { funnels } = importData;
+        let importedCount = 0;
+        let skippedCount = 0;
+        
+        // Importar cada funil
+        funnels.forEach(funnel => {
+            if (funnel.id && funnel.name && funnel.steps) {
+                funis.set(funnel.id, funnel);
+                importedCount++;
+                addLog('FUNNEL_IMPORTED', `Funil importado: ${funnel.id}`);
+            } else {
+                skippedCount++;
+                addLog('FUNNEL_IMPORT_SKIP', `Funil inválido ignorado: ${funnel.id || 'sem ID'}`);
+            }
+        });
+        
+        // Salvar no arquivo
+        saveFunnelsToFile();
+        
+        addLog('FUNNELS_IMPORT_COMPLETE', `Import concluído: ${importedCount} importados, ${skippedCount} ignorados`);
+        
+        res.json({ 
+            success: true, 
+            message: `Import concluído com sucesso!`,
+            imported: importedCount,
+            skipped: skippedCount,
+            total: funnels.length
+        });
+        
+    } catch (error) {
+        addLog('FUNNELS_IMPORT_ERROR', 'Erro no import: ' + error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.get('/api/conversations', (req, res) => {
     const conversationsList = Array.from(conversations.entries()).map(([remoteJid, conv]) => ({
         id: remoteJid,
