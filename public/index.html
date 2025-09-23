@@ -234,6 +234,46 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .workspace-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #059669, #047857);
+            position: relative;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-export::after {
+            content: "📥";
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-import {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        .btn-import:hover {
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
         }
 
         .current-funnel {
@@ -731,7 +771,15 @@
                     <div class="funnel-workspace">
                         <div class="workspace-header">
                             <div class="current-funnel" id="currentFunnelName">CS - Compra Aprovada</div>
-                            <button class="btn" onclick="saveFunnel()">Salvar Funil</button>
+                            <div class="workspace-actions">
+                                <button class="btn btn-export" onclick="exportFunnels()" title="💾 Fazer backup de todos os funis personalizados">
+                                    💾 Export Funis
+                                </button>
+                                <button class="btn btn-import" onclick="importFunnels()" title="📤 Restaurar funis de um arquivo de backup">
+                                    📤 Import Funis
+                                </button>
+                                <button class="btn" onclick="saveFunnel()">Salvar Funil</button>
+                            </div>
                         </div>
                         
                         <div class="steps-container" id="stepsContainer">
@@ -1379,6 +1427,106 @@
             } catch (error) {
                 console.error('Erro ao carregar dashboard:', error);
             }
+        }
+
+        // ✅ SISTEMA DE EXPORT/IMPORT DE FUNIS
+
+        async function exportFunnels() {
+            try {
+                const response = await fetch('/api/funnels/export');
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    a.download = `kirvano-funis-backup-${today}.json`;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    alert('✅ Backup dos funis salvo com sucesso!\n\n📁 Guarde este arquivo em local seguro.\n🚀 Use o botão "Import" após fazer deploy para restaurar os funis.');
+                } else {
+                    alert('❌ Erro ao gerar backup dos funis');
+                }
+            } catch (error) {
+                alert('❌ Erro ao exportar funis: ' + error.message);
+            }
+        }
+
+        function importFunnels() {
+            // Criar input file invisível
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.style.display = 'none';
+            
+            input.onchange = async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const importData = JSON.parse(text);
+                    
+                    // Validação básica
+                    if (!importData.funnels || !Array.isArray(importData.funnels)) {
+                        alert('❌ Arquivo de backup inválido!\n\nCertifique-se de que é um backup válido dos funis.');
+                        return;
+                    }
+                    
+                    // Confirmar import
+                    const confirmMsg = `📤 RESTAURAR FUNIS DO BACKUP\n\n` +
+                        `📁 Arquivo: ${file.name}\n` +
+                        `📅 Data do backup: ${importData.exportDate ? new Date(importData.exportDate).toLocaleDateString('pt-BR') : 'N/A'}\n` +
+                        `📊 Total de funis: ${importData.funnels.length}\n\n` +
+                        `⚠️ ATENÇÃO: Isso vai sobrescrever os funis atuais!\n\n` +
+                        `Deseja continuar?`;
+                    
+                    if (!confirm(confirmMsg)) return;
+                    
+                    // Fazer o import
+                    const response = await fetch('/api/funnels/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(importData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`✅ FUNIS RESTAURADOS COM SUCESSO!\n\n` +
+                            `📊 ${result.imported} funis importados\n` +
+                            `⚠️ ${result.skipped} funis ignorados (inválidos)\n` +
+                            `📝 Total processados: ${result.total}\n\n` +
+                            `🔄 Recarregando editor...`);
+                        
+                        // Recarregar dados
+                        await loadFunnelsFromServer();
+                        loadFunnelEditor();
+                    } else {
+                        alert('❌ Erro ao importar funis: ' + result.error);
+                    }
+                    
+                } catch (error) {
+                    if (error.name === 'SyntaxError') {
+                        alert('❌ Arquivo JSON inválido!\n\nCertifique-se de que selecionou um backup válido dos funis.');
+                    } else {
+                        alert('❌ Erro ao importar funis: ' + error.message);
+                    }
+                }
+                
+                // Limpar input
+                document.body.removeChild(input);
+            };
+            
+            // Adicionar ao DOM e clicar
+            document.body.appendChild(input);
+            input.click();
         }
 
         // CARREGAR FUNIS DO SERVIDOR
