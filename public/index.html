@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kirvano - Editor de Funis</title>
+    <title>Kirvano V2.0 - Editor de Funis</title>
     <style>
         * {
             margin: 0;
@@ -38,6 +38,17 @@
             margin-bottom: 8px;
         }
 
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
         .header p {
             color: #6b7280;
             margin-bottom: 20px;
@@ -56,6 +67,12 @@
             border-radius: 12px;
             border-left: 4px solid #667eea;
             text-align: center;
+            position: relative;
+        }
+
+        .stat-card.highlight {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
         }
 
         .stat-value {
@@ -68,6 +85,18 @@
             font-size: 12px;
             color: #6b7280;
             margin-top: 4px;
+        }
+
+        .stat-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
         }
 
         .main-content {
@@ -92,12 +121,25 @@
             font-weight: 600;
             color: #6b7280;
             transition: all 0.2s;
+            position: relative;
         }
 
         .main-tab.active {
             background: white;
             color: #667eea;
             border-bottom: 2px solid #667eea;
+        }
+
+        .tab-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
         }
 
         .tab-content {
@@ -226,6 +268,14 @@
             background: #6b7280;
         }
 
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
         .btn-danger {
             background: #dc2626;
         }
@@ -252,6 +302,18 @@
         .step-card.editing {
             border-color: #667eea;
             background: #f0f4ff;
+        }
+
+        .capture-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #f59e0b;
+            color: white;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
         }
 
         .step-header {
@@ -420,6 +482,103 @@
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-info { background: #dbeafe; color: #1e40af; }
         .badge-danger { background: #fecaca; color: #991b1b; }
+        .badge-secondary { background: #f3f4f6; color: #374151; }
+
+        /* CONTATOS CAPTURADOS */
+        .contacts-container {
+            padding: 24px;
+        }
+
+        .contacts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .contacts-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .instance-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .instance-tab {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .instance-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .instance-tab:hover {
+            background: #e5e7eb;
+        }
+
+        .instance-tab.active:hover {
+            background: #5a67d8;
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .contact-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .contact-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .contact-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .contact-date {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .contact-phone {
+            font-family: monospace;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .contact-name {
+            font-size: 12px;
+            color: #6b7280;
+        }
 
         @media (max-width: 768px) {
             .funnel-editor {
@@ -434,16 +593,30 @@
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
             }
+
+            .contacts-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Kirvano - Editor de Funis</h1>
-            <p>Crie e gerencie funis de conversão automáticos</p>
+            <h1>Kirvano - Editor de Funis <span class="version-badge">v2.0</span></h1>
+            <p>Sistema aprimorado com sticky instances, cancelamento PIX automático e captura de contatos</p>
             
             <div class="stats-grid">
+                <div class="stat-card highlight">
+                    <span class="stat-badge">NOVO</span>
+                    <div class="stat-value" id="statsDailyMessages">-</div>
+                    <div class="stat-label">Mensagens Enviadas Hoje</div>
+                </div>
+                <div class="stat-card highlight">
+                    <span class="stat-badge">NOVO</span>
+                    <div class="stat-value" id="statsContacts">-</div>
+                    <div class="stat-label">Contatos Capturados</div>
+                </div>
                 <div class="stat-card">
                     <div class="stat-value" id="statsConversations">-</div>
                     <div class="stat-label">Conversas Ativas</div>
@@ -467,6 +640,10 @@
             <div class="main-tabs">
                 <button class="main-tab active" onclick="switchMainTab('editor')">Editor de Funis</button>
                 <button class="main-tab" onclick="switchMainTab('events')">Lista de Eventos</button>
+                <button class="main-tab" onclick="switchMainTab('contacts')">
+                    Contatos Capturados
+                    <span class="tab-badge" id="contactsBadge">0</span>
+                </button>
             </div>
 
             <!-- EDITOR DE FUNIS -->
@@ -594,12 +771,44 @@
                     </table>
                 </div>
             </div>
+
+            <!-- CONTATOS CAPTURADOS -->
+            <div id="contacts" class="tab-content">
+                <div class="contacts-container">
+                    <div class="contacts-header">
+                        <h2>Contatos Capturados para Google Contacts</h2>
+                        <div class="contacts-actions">
+                            <button class="btn btn-success" onclick="downloadContacts()">
+                                📥 Download CSV
+                            </button>
+                            <button class="btn btn-danger" onclick="clearContacts()">
+                                🗑️ Limpar Tudo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="instance-tabs" id="instanceTabs">
+                        <button class="instance-tab active" onclick="showInstanceContacts('all')">
+                            Todos (0)
+                        </button>
+                    </div>
+                    
+                    <div class="contacts-grid" id="contactsGrid">
+                        <div style="text-align: center; padding: 40px; color: #6b7280; grid-column: 1 / -1;">
+                            Nenhum contato capturado ainda.<br>
+                            <small>Os contatos são capturados quando clientes respondem à segunda mensagem dos funis.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let currentFunnelData = null;
         let editingStepIndex = -1;
+        let contactsData = {};
+        let currentInstanceFilter = 'all';
 
         // Dados dos funis
         let funnelsData = {
@@ -635,6 +844,8 @@
             
             if (tabName === 'events') {
                 loadEvents();
+            } else if (tabName === 'contacts') {
+                loadContacts();
             }
         }
 
@@ -655,6 +866,7 @@
                 text: '',
                 mediaUrl: '',
                 waitForReply: false,
+                captureContact: false, // ✅ NOVO
                 timeoutMinutes: undefined,
                 nextOnReply: undefined,
                 nextOnTimeout: undefined
@@ -678,7 +890,7 @@
         function updateStep(index, field, value) {
             if (!currentFunnelData.steps[index]) return;
             
-            if (field === 'waitForReply') {
+            if (field === 'waitForReply' || field === 'captureContact') {
                 currentFunnelData.steps[index][field] = value;
             } else if (field === 'timeoutMinutes' || field === 'nextOnReply' || field === 'nextOnTimeout') {
                 currentFunnelData.steps[index][field] = value !== '' ? parseInt(value) : undefined;
@@ -738,6 +950,7 @@
                 
                 html += `
                     <div class="step-card ${isEditing ? 'editing' : ''}">
+                        ${step.captureContact ? '<div class="capture-badge">📞 CAPTURA</div>' : ''}
                         <div class="step-header">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div class="step-number">${index + 1}</div>
@@ -769,6 +982,7 @@
                                     ${step.text ? `<strong>Texto:</strong> ${step.text.substring(0, 100)}${step.text.length > 100 ? '...' : ''}` : ''}
                                     ${step.mediaUrl ? `<br><strong>Mídia:</strong> ${step.mediaUrl}` : ''}
                                     ${step.waitForReply ? '<br><span style="color: #dc2626;">⏸️ Aguardar resposta do cliente</span>' : ''}
+                                    ${step.captureContact ? '<br><span style="color: #f59e0b;">📞 Capturar contato na resposta</span>' : ''}
                                 `}
                             </div>
                             
@@ -850,6 +1064,13 @@
                                             value="${step.timeoutMinutes || ''}"
                                             oninput="updateStep(${index}, 'timeoutMinutes', this.value)">
                                     </div>
+                                    
+                                    <div class="form-checkbox">
+                                        <input type="checkbox" id="capture_${index}" 
+                                            ${step.captureContact ? 'checked' : ''}
+                                            onchange="updateStep(${index}, 'captureContact', this.checked)">
+                                        <label for="capture_${index}">📞 Capturar contato se cliente responder</label>
+                                    </div>
                                 </div>
                                 ` : ''}
                                 ` : ''}
@@ -884,7 +1105,6 @@
                 return;
             }
             
-            // Validação corrigida - Verificar campos obrigatórios por tipo de passo
             for (let i = 0; i < currentFunnelData.steps.length; i++) {
                 const step = currentFunnelData.steps[i];
                 
@@ -904,7 +1124,6 @@
                         return;
                     }
                 } else if (step.type === 'image' || step.type === 'video' || step.type === 'audio' || step.type === 'image+text' || step.type === 'video+text') {
-                    // Só exigir URL para tipos com mídia
                     if (!step.mediaUrl || step.mediaUrl.trim() === '') {
                         alert(`Passo ${i + 1}: URL da mídia é obrigatória`);
                         return;
@@ -970,9 +1189,16 @@
 
             let html = '';
             events.forEach(event => {
-                const statusBadge = event.waiting_for_response ? 
-                    '<span class="badge badge-warning">Aguardando</span>' : 
-                    '<span class="badge badge-success">Pronto</span>';
+                let statusBadge;
+                if (event.canceled) {
+                    statusBadge = '<span class="badge badge-secondary">Cancelado</span>';
+                } else if (event.completed) {
+                    statusBadge = '<span class="badge badge-success">Concluído</span>';
+                } else if (event.waiting_for_response) {
+                    statusBadge = '<span class="badge badge-warning">Aguardando</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-info">Enviando</span>';
+                }
                 
                 const productBadge = `<span class="badge badge-info">${event.productType}</span>`;
                 const createdAt = new Date(event.createdAt).toLocaleString('pt-BR');
@@ -994,7 +1220,148 @@
             tbody.innerHTML = html;
         }
 
-        // DASHBOARD
+        // ✅ CONTATOS CAPTURADOS
+        async function loadContacts() {
+            try {
+                const response = await fetch('/api/contacts');
+                const result = await response.json();
+                
+                if (result.success) {
+                    contactsData = result.data;
+                    renderInstanceTabs();
+                    renderContacts();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar contatos:', error);
+            }
+        }
+
+        function renderInstanceTabs() {
+            const tabsContainer = document.getElementById('instanceTabs');
+            const instances = Object.keys(contactsData);
+            const totalContacts = Object.values(contactsData).reduce((sum, contacts) => sum + contacts.length, 0);
+            
+            let html = `<button class="instance-tab ${currentInstanceFilter === 'all' ? 'active' : ''}" onclick="showInstanceContacts('all')">
+                Todos (${totalContacts})
+            </button>`;
+            
+            instances.forEach(instance => {
+                const count = contactsData[instance].length;
+                html += `<button class="instance-tab ${currentInstanceFilter === instance ? 'active' : ''}" onclick="showInstanceContacts('${instance}')">
+                    ${instance} (${count})
+                </button>`;
+            });
+            
+            tabsContainer.innerHTML = html;
+        }
+
+        function showInstanceContacts(instanceFilter) {
+            currentInstanceFilter = instanceFilter;
+            renderInstanceTabs();
+            renderContacts();
+        }
+
+        function renderContacts() {
+            const grid = document.getElementById('contactsGrid');
+            let allContacts = [];
+            
+            if (currentInstanceFilter === 'all') {
+                Object.entries(contactsData).forEach(([instance, contacts]) => {
+                    contacts.forEach(contact => {
+                        allContacts.push({ ...contact, instance });
+                    });
+                });
+            } else {
+                allContacts = (contactsData[currentInstanceFilter] || []).map(contact => ({
+                    ...contact,
+                    instance: currentInstanceFilter
+                }));
+            }
+            
+            if (allContacts.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6b7280; grid-column: 1 / -1;">
+                        ${currentInstanceFilter === 'all' ? 
+                            'Nenhum contato capturado ainda.<br><small>Os contatos são capturados quando clientes respondem às mensagens marcadas para captura.</small>' :
+                            `Nenhum contato capturado na instância ${currentInstanceFilter}.`
+                        }
+                    </div>
+                `;
+                return;
+            }
+            
+            // Ordenar por mais recentes primeiro
+            allContacts.sort((a, b) => new Date(b.capturedAt) - new Date(a.capturedAt));
+            
+            let html = '';
+            allContacts.forEach(contact => {
+                html += `
+                    <div class="contact-card">
+                        <div class="contact-header">
+                            <div class="contact-date">${contact.date}</div>
+                            <div style="font-size: 12px; color: #6b7280;">${contact.instance}</div>
+                        </div>
+                        <div class="contact-phone">${contact.phone}</div>
+                        <div class="contact-name">${contact.name}</div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+        }
+
+        async function downloadContacts() {
+            try {
+                const response = await fetch('/api/contacts/download');
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `contatos-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    alert('Download iniciado! Arquivo CSV salvo com contatos organizados por instância.');
+                } else {
+                    alert('Erro ao gerar arquivo de download');
+                }
+            } catch (error) {
+                alert('Erro ao baixar contatos: ' + error.message);
+            }
+        }
+
+        async function clearContacts() {
+            if (!confirm('Tem certeza que deseja limpar todos os contatos capturados? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/contacts', {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    contactsData = {};
+                    currentInstanceFilter = 'all';
+                    renderInstanceTabs();
+                    renderContacts();
+                    loadDashboard(); // Atualizar contadores
+                    alert('Todos os contatos foram removidos!');
+                } else {
+                    alert('Erro ao limpar contatos: ' + result.error);
+                }
+            } catch (error) {
+                alert('Erro ao limpar contatos: ' + error.message);
+            }
+        }
+
+        // DASHBOARD MELHORADO
         async function loadDashboard() {
             try {
                 const response = await fetch('/api/dashboard');
@@ -1004,6 +1371,10 @@
                     const stats = result.data;
                     document.getElementById('statsConversations').textContent = stats.active_conversations || 0;
                     document.getElementById('statsPix').textContent = stats.pending_pix || 0;
+                    // ✅ NOVOS CONTADORES
+                    document.getElementById('statsDailyMessages').textContent = stats.daily_first_messages || 0;
+                    document.getElementById('statsContacts').textContent = stats.captured_contacts || 0;
+                    document.getElementById('contactsBadge').textContent = stats.captured_contacts || 0;
                 }
             } catch (error) {
                 console.error('Erro ao carregar dashboard:', error);
@@ -1038,10 +1409,14 @@
             loadFunnelsFromServer();
             loadFunnelEditor();
             
+            // Atualizar dados periodicamente
             setInterval(() => {
                 loadDashboard();
                 if (document.getElementById('events').classList.contains('active')) {
                     loadEvents();
+                }
+                if (document.getElementById('contacts').classList.contains('active')) {
+                    loadContacts();
                 }
             }, 10000);
         });
