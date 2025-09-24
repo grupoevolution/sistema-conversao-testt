@@ -611,7 +611,7 @@ async function sendAudio(remoteJid, audioUrl, clientMessageId, instanceName) {
 
 // ============ ENVIO COM STICKY INSTANCE MELHORADO ============
 
-// ✅ STICKY INSTANCE ROBUSTO
+// ✅ STICKY INSTANCE ROBUSTO COM ROUND-ROBIN CORRIGIDO
 async function sendWithFallback(remoteJid, type, text, mediaUrl, isFirstMessage = false) {
     const clientMessageId = uuidv4();
     let instancesToTry = [...INSTANCES];
@@ -627,29 +627,32 @@ async function sendWithFallback(remoteJid, type, text, mediaUrl, isFirstMessage 
             isFirstMessage
         });
     } else if (isFirstMessage) {
-        // Round-robin para primeira mensagem
-        const primaryInstanceIndex = instanceRoundRobin % INSTANCES.length;
-        const primaryInstance = INSTANCES[primaryInstanceIndex];
-        instanceRoundRobin++;
+        // ✅ CORREÇÃO: Round-robin baseado na última instância que funcionou
+        const nextInstanceIndex = (lastSuccessfulInstanceIndex + 1) % INSTANCES.length;
+        const primaryInstance = INSTANCES[nextInstanceIndex];
         
+        // Reorganizar lista começando da próxima instância na fila
         instancesToTry = [
-            primaryInstance,
-            ...INSTANCES.slice(primaryInstanceIndex + 1),
-            ...INSTANCES.slice(0, primaryInstanceIndex)
+            ...INSTANCES.slice(nextInstanceIndex),
+            ...INSTANCES.slice(0, nextInstanceIndex)
         ];
         
-        addLog('INSTANCE_DISTRIBUTION', `Nova conversa #${instanceRoundRobin} distribuída para ${primaryInstance}`, { 
+        addLog('INSTANCE_DISTRIBUTION', `Nova conversa distribuída para ${primaryInstance} (índice ${nextInstanceIndex})`, { 
             remoteJid,
             primaryInstance,
-            fallbackOrder: instancesToTry 
+            lastSuccessfulIndex: lastSuccessfulInstanceIndex,
+            nextIndex: nextInstanceIndex,
+            fallbackOrder: instancesToTry.slice(0, 3) // Mostrar apenas primeiros 3 para logs
         });
     }
     
     let lastError = null;
+    let successfulInstanceIndex = -1;
     
-    for (const instanceName of instancesToTry) {
+    for (let i = 0; i < instancesToTry.length; i++) {
+        const instanceName = instancesToTry[i];
         try {
-            addLog('SEND_ATTEMPT', `Tentando ${instanceName} para ${remoteJid}`, { 
+            addLog('SEND_ATTEMPT', `Tentando ${instanceName} para ${remoteJid} (tentativa ${i + 1})`, { 
                 type, 
                 clientMessageId,
                 isFirstMessage,
@@ -676,6 +679,12 @@ async function sendWithFallback(remoteJid, type, text, mediaUrl, isFirstMessage 
                 // ✅ CRITICAL: Sempre definir/manter sticky instance
                 stickyInstances.set(remoteJid, instanceName);
                 
+                // ✅ CORREÇÃO: Atualizar índice da última instância bem-sucedida
+                if (isFirstMessage) {
+                    successfulInstanceIndex = INSTANCES.indexOf(instanceName);
+                    lastSuccessfulInstanceIndex = successfulInstanceIndex;
+                }
+                
                 // ✅ NOVO: Contar primeira mensagem para estatísticas
                 if (isFirstMessage) {
                     dailyStats.firstMessages.add(remoteJid);
@@ -685,7 +694,8 @@ async function sendWithFallback(remoteJid, type, text, mediaUrl, isFirstMessage 
                     remoteJid, 
                     type,
                     isFirstMessage,
-                    distributionNumber: isFirstMessage ? instanceRoundRobin : null,
+                    instanceIndex: successfulInstanceIndex,
+                    nextWillStartFrom: isFirstMessage ? INSTANCES[(successfulInstanceIndex + 1) % INSTANCES.length] : 'N/A',
                     stickyInstanceSet: instanceName
                 });
                 
@@ -700,7 +710,10 @@ async function sendWithFallback(remoteJid, type, text, mediaUrl, isFirstMessage 
         }
     }
     
-    addLog('SEND_ALL_FAILED', `Todas as instâncias falharam para ${remoteJid}`, { lastError });
+    addLog('SEND_ALL_FAILED', `Todas as instâncias falharam para ${remoteJid}`, { 
+        lastError,
+        triedInstances: instancesToTry.length
+    });
     return { success: false, error: lastError };
 }
 
@@ -1161,10 +1174,11 @@ app.get('/api/dashboard', (req, res) => {
         }
     });
     
-    const nextInstanceIndex = instanceRoundRobin % INSTANCES.length;
+    // ✅ CORREÇÃO: Próxima instância baseada na última bem-sucedida
+    const nextInstanceIndex = (lastSuccessfulInstanceIndex + 1) % INSTANCES.length;
     const nextInstance = INSTANCES[nextInstanceIndex];
     
-    // ✅ NOVO: Contar mensagens enviadas hoje
+    // Contar mensagens enviadas hoje
     const today = new Date().toISOString().split('T')[0];
     if (dailyStats.date !== today) {
         // Reset para novo dia
@@ -1179,11 +1193,11 @@ app.get('/api/dashboard', (req, res) => {
         total_funnels: funis.size,
         total_instances: INSTANCES.length,
         sticky_instances: stickyInstances.size,
-        round_robin_counter: instanceRoundRobin,
+        last_successful_instance: lastSuccessfulInstanceIndex >= 0 ? INSTANCES[lastSuccessfulInstanceIndex] : 'Nenhuma',
         next_instance_in_queue: nextInstance,
         instance_distribution: instanceUsage,
         conversations_per_instance: Math.round(conversations.size / INSTANCES.length),
-        // ✅ NOVAS ESTATÍSTICAS
+        // NOVAS ESTATÍSTICAS
         daily_first_messages: dailyStats.firstMessages.size,
         daily_total_events: dailyStats.totalEvents,
         today_date: today,
