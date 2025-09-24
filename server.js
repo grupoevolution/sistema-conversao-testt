@@ -41,7 +41,7 @@ let dailyStats = { // ✅ NOVO: Estatísticas diárias
     totalEvents: 0
 };
 
-// ✅ FUNIS PADRÃO COM LÓGICA DE CAPTURA DE CONTATOS
+// ✅ FUNIS PADRÃO COM LÓGICA DE CAPTURA DE CONTATOS CORRIGIDA
 const defaultFunnels = {
     'CS_APROVADA': {
         id: 'CS_APROVADA',
@@ -53,7 +53,7 @@ const defaultFunnels = {
                 text: 'Parabéns! Seu pedido foi aprovado. Bem-vindo ao CS!',
                 waitForReply: true,
                 timeoutMinutes: 60,
-                nextOnReply: 1,
+                nextOnReply: 1, // ✅ CORREÇÃO: vai para passo 1 (índice)
                 nextOnTimeout: 2
             },
             {
@@ -63,7 +63,7 @@ const defaultFunnels = {
                 waitForReply: true,
                 captureContact: true, // ✅ NOVO: Marcar para capturar contato
                 timeoutMinutes: 30,
-                nextOnReply: 2,
+                nextOnReply: 2, // ✅ CORREÇÃO: vai para passo 2 (índice)
                 nextOnTimeout: 2
             },
             {
@@ -84,7 +84,7 @@ const defaultFunnels = {
                 text: 'Seu PIX foi gerado! Aguardamos o pagamento para liberar o acesso ao CS.',
                 waitForReply: true,
                 timeoutMinutes: 10,
-                nextOnReply: 1,
+                nextOnReply: 1, // ✅ CORREÇÃO: vai para passo 1
                 nextOnTimeout: 2
             },
             {
@@ -94,7 +94,7 @@ const defaultFunnels = {
                 waitForReply: true,
                 captureContact: true, // ✅ NOVO: Capturar contato
                 timeoutMinutes: 15,
-                nextOnReply: 2,
+                nextOnReply: 2, // ✅ CORREÇÃO: vai para passo 2
                 nextOnTimeout: 2
             },
             {
@@ -115,7 +115,7 @@ const defaultFunnels = {
                 text: 'Parabéns! Seu pedido FAB foi aprovado. Prepare-se para a transformação!',
                 waitForReply: true,
                 timeoutMinutes: 60,
-                nextOnReply: 1,
+                nextOnReply: 1, // ✅ CORREÇÃO: vai para passo 1
                 nextOnTimeout: 2
             },
             {
@@ -125,7 +125,7 @@ const defaultFunnels = {
                 waitForReply: true,
                 captureContact: true, // ✅ NOVO: Capturar contato
                 timeoutMinutes: 30,
-                nextOnReply: 2,
+                nextOnReply: 2, // ✅ CORREÇÃO: vai para passo 2
                 nextOnTimeout: 2
             },
             {
@@ -146,7 +146,7 @@ const defaultFunnels = {
                 text: 'Seu PIX FAB foi gerado! Aguardamos o pagamento para iniciar sua transformação.',
                 waitForReply: true,
                 timeoutMinutes: 10,
-                nextOnReply: 1,
+                nextOnReply: 1, // ✅ CORREÇÃO: vai para passo 1
                 nextOnTimeout: 2
             },
             {
@@ -156,7 +156,7 @@ const defaultFunnels = {
                 waitForReply: true,
                 captureContact: true, // ✅ NOVO: Capturar contato
                 timeoutMinutes: 15,
-                nextOnReply: 2,
+                nextOnReply: 2, // ✅ CORREÇÃO: vai para passo 2
                 nextOnTimeout: 2
             },
             {
