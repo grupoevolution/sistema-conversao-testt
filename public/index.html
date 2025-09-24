@@ -904,8 +904,19 @@
         function loadFunnelEditor() {
             const funnelId = document.getElementById('funnelSelect').value;
             currentFunnelData = funnelsData[funnelId];
-            document.getElementById('currentFunnelName').textContent = currentFunnelData.name;
-            renderSteps();
+            
+            if (currentFunnelData) {
+                document.getElementById('currentFunnelName').textContent = currentFunnelData.name;
+                renderSteps();
+            } else {
+                console.error('Funil não encontrado:', funnelId);
+                document.getElementById('stepsContainer').innerHTML = `
+                    <div class="empty-workspace">
+                        <h3>Erro ao carregar funil</h3>
+                        <p>Funil "${funnelId}" não foi encontrado. Recarregue a página.</p>
+                    </div>
+                `;
+            }
         }
 
         function addBlock(type) {
@@ -1520,9 +1531,22 @@
                             `📝 Total processados: ${result.total}\n\n` +
                             `🔄 Recarregando editor...`);
                         
-                        // Recarregar dados
+                        // ✅ CORREÇÃO: Recarregar dados adequadamente
                         await loadFunnelsFromServer();
-                        loadFunnelEditor();
+                        
+                        // Verificar se funil atual ainda existe, senão volta para o primeiro
+                        const currentFunnelId = document.getElementById('funnelSelect').value;
+                        if (funnelsData[currentFunnelId]) {
+                            currentFunnelData = funnelsData[currentFunnelId];
+                        } else {
+                            document.getElementById('funnelSelect').value = 'CS_APROVADA';
+                            currentFunnelData = funnelsData['CS_APROVADA'];
+                        }
+                        
+                        // Atualizar nome do funil e renderizar
+                        document.getElementById('currentFunnelName').textContent = currentFunnelData.name;
+                        renderSteps();
+                        
                     } else {
                         alert('❌ Erro ao importar funis: ' + result.error);
                     }
@@ -1551,18 +1575,33 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // ✅ CORREÇÃO: Limpar dados antigos primeiro
+                    Object.keys(funnelsData).forEach(key => {
+                        funnelsData[key] = {
+                            id: key,
+                            name: funnelsData[key].name,
+                            steps: [] // Reset steps
+                        };
+                    });
+                    
+                    // Carregar funis do servidor
                     result.data.forEach(funnel => {
                         if (funnelsData[funnel.id]) {
                             funnelsData[funnel.id] = funnel;
                         }
                     });
                     
-                    if (currentFunnelData) {
-                        loadFunnelEditor();
-                    }
+                    console.log('Funis recarregados:', Object.keys(funnelsData).map(key => ({
+                        id: key,
+                        steps: funnelsData[key].steps.length
+                    })));
+                    
+                    return true;
                 }
+                return false;
             } catch (error) {
                 console.error('Erro ao carregar funis:', error);
+                return false;
             }
         }
 
