@@ -33,7 +33,7 @@ let stickyInstances = new Map();
 let pixTimeouts = new Map();
 let logs = [];
 let funis = new Map();
-let instanceRoundRobin = 0;
+let instanceRoundRobin = -1;
 let capturedContacts = new Map(); // ✅ NOVO: Contatos capturados por instância
 let dailyStats = { // ✅ NOVO: Estatísticas diárias
     date: new Date().toISOString().split('T')[0],
