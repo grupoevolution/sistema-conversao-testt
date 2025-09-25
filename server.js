@@ -1533,7 +1533,7 @@ app.get('/api/debug/evolution', async (req, res) => {
         instances: INSTANCES,
         active_conversations: conversations.size,
         sticky_instances_count: stickyInstances.size,
-        round_robin_counter: instanceRoundRobin,
+        last_successful_instance: lastSuccessfulInstanceIndex >= 0 ? INSTANCES[lastSuccessfulInstanceIndex] : 'Nenhuma',
         daily_stats: {
             date: dailyStats.date,
             first_messages: dailyStats.firstMessages.size,
